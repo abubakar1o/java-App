@@ -1,0 +1,49 @@
+trigger:
+- main
+
+pool:
+  name: 'Default'
+
+variables:
+  businessCentralUrl: 'http://40.112.52.80:8080/business-central/rest'
+  spaceName: 'MySpace'
+  projectName: 'approvalProcess'
+  githubRepoUrl: 'https://github.com/abubakar1o/Approval-process.git'  # URL to your GitHub repository
+  kieUsername: admin
+  kiePassword: admin
+
+stages:
+- stage: SetupAndDeploy
+  displayName: Setup and Deploy in Business-Central
+  jobs:
+  - job: SetupProject
+    displayName: 'Setup and Import Project'
+    steps:
+    - bash: |
+        echo "Checking for existing project in Business-Central..."
+        auth=$(echo -n "${{ variables.kieUsername }}:${{ variables.kiePassword }}" | base64 -w 0)
+        projectResponse=$(curl -s -X GET -u "${{ variables.kieUsername }}:${{ variables.kiePassword }}" \
+          "${{ variables.businessCentralUrl }}/spaces/${{ variables.spaceName }}/projects" -H 'Accept: application/json')
+        if echo $projectResponse | grep -q "${{ variables.projectName }}"; then
+          echo "Project already exists. Skipping creation."
+        else
+          echo "Creating Project in Business-Central..."
+          curl -v -X POST -u "${{ variables.kieUsername }}:${{ variables.kiePassword }}" \
+            "${{ variables.businessCentralUrl }}/spaces/${{ variables.spaceName }}/projects" -H "content-type: application/json" \
+            -d "{\"name\": \"${{ variables.projectName }}\"}"
+        fi
+      displayName: 'Check and Create Project'
+    - bash: |
+        echo "Cloning project from GitHub..."
+        cloneResponse=$(curl -s -X POST -u "${{ variables.kieUsername }}:${{ variables.kiePassword }}" \
+          "${{ variables.businessCentralUrl }}/spaces/${{ variables.spaceName }}/git/clone" -H "content-type: application/json" \
+          -d "{\"gitURL\": \"${{ variables.githubRepoUrl }}\"}")
+        echo $cloneResponse
+      displayName: 'Clone GitHub Project'
+    - bash: |
+        echo "Installing and deploying project via Maven..."
+        curl -v -X POST -u "${{ variables.kieUsername }}:${{ variables.kiePassword }}" \
+          "${{ variables.businessCentralUrl }}/spaces/${{ variables.spaceName }}/projects/${{ variables.projectName }}/maven/install"
+        curl -v -X POST -u "${{ variables.kieUsername }}:${{ variables.kiePassword }}" \
+          "${{ variables.businessCentralUrl }}/spaces/${{ variables.spaceName }}/projects/${{ variables.projectName }}/maven/deploy"
+      displayName: 'Build and Deploy Project'
