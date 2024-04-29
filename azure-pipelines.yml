@@ -7,8 +7,8 @@ pool:
 variables:
   businessCentralUrl: 'http://40.112.52.80:8080/business-central/rest'
   spaceName: 'MySpace'
-  projectName: 'bpm2-project'
-  githubRepoUrl: 'https://github.com/abubakar1o/integration-tests-jbpm.git'  # URL to your GitHub repository
+  projectName: 'BPM-Process'
+  githubRepoUrl: 'https://github.com/abubakar1o/integration-tests-jbpm.git'
   kieUsername: admin
   kiePassword: admin
 
@@ -19,20 +19,6 @@ stages:
   - job: SetupProject
     displayName: 'Setup and Import Project'
     steps:
-    - bash: |
-        echo "Checking for existing project in Business-Central..."
-        auth=$(echo -n "${{ variables.kieUsername }}:${{ variables.kiePassword }}" | base64 -w 0)
-        projectResponse=$(curl -s -X GET -u "${{ variables.kieUsername }}:${{ variables.kiePassword }}" \
-          "${{ variables.businessCentralUrl }}/spaces/${{ variables.spaceName }}/projects" -H 'Accept: application/json')
-        if echo $projectResponse | grep -q "${{ variables.projectName }}"; then
-          echo "Project already exists. Skipping creation."
-        else
-          echo "Creating Project in Business-Central..."
-          curl -v -X POST -u "${{ variables.kieUsername }}:${{ variables.kiePassword }}" \
-            "${{ variables.businessCentralUrl }}/spaces/${{ variables.spaceName }}/projects" -H "content-type: application/json" \
-            -d "{\"name\": \"${{ variables.projectName }}\"}"
-        fi
-      displayName: 'Check and Create Project'
     - bash: |
         echo "Cloning project from GitHub..."
         cloneResponse=$(curl -s -X POST -u "${{ variables.kieUsername }}:${{ variables.kiePassword }}" \
