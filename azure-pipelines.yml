@@ -7,8 +7,8 @@ pool:
 variables:
   businessCentralUrl: 'http://40.112.52.80:8080/business-central/rest'
   spaceName: 'MySpace'
-  projectName: 'approvalProcess'
-  githubRepoUrl: 'https://github.com/abubakar1o/Approval-process.git'  # URL to your GitHub repository
+  projectName: 'bpm2-project'
+  githubRepoUrl: 'https://github.com/abubakar1o/integration-tests-jbpm.git'  # URL to your GitHub repository
   kieUsername: admin
   kiePassword: admin
 
@@ -42,6 +42,8 @@ stages:
       displayName: 'Clone GitHub Project'
     - bash: |
         echo "Installing and deploying project via Maven..."
+        curl -v -X POST -u "${{ variables.kieUsername }}:${{ variables.kiePassword }}" \
+          "${{ variables.businessCentralUrl }}/spaces/${{ variables.spaceName }}/projects/${{ variables.projectName }}/maven/compile"
         curl -v -X POST -u "${{ variables.kieUsername }}:${{ variables.kiePassword }}" \
           "${{ variables.businessCentralUrl }}/spaces/${{ variables.spaceName }}/projects/${{ variables.projectName }}/maven/install"
         curl -v -X POST -u "${{ variables.kieUsername }}:${{ variables.kiePassword }}" \
