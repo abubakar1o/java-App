@@ -6,6 +6,8 @@ pool:
 
 variables:
   businessCentralUrl: 'http://40.112.52.80:8080/business-central/rest'
+  kieServerUrl: 'http://40.112.52.80:8180/kie-server/services/rest/server'
+  containerId: 'BPM-Process'  # Adjust this as necessary
   spaceName: 'MySpace'
   projectName: 'BPM-Process'
   githubRepoUrl: 'https://github.com/abubakar1o/integration-tests-jbpm.git'
@@ -21,25 +23,37 @@ stages:
     steps:
     - bash: |
         echo "Cloning project from GitHub..."
-        cloneResponse=$(curl -s -X POST -u "${{ variables.kieUsername }}:${{ variables.kiePassword }}" \
-          "${{ variables.businessCentralUrl }}/spaces/${{ variables.spaceName }}/git/clone" -H "content-type: application/json" \
-          -d "{\"gitURL\": \"${{ variables.githubRepoUrl }}\"}")
+        cloneResponse=$(curl -s -X POST -u "$kieUsername:$kiePassword" \
+          "$businessCentralUrl/spaces/$spaceName/git/clone" -H "content-type: application/json" \
+          -d "{\"gitURL\": \"$githubRepoUrl\"}")
         echo $cloneResponse
       displayName: 'Clone GitHub Project'
+
     - bash: |
         echo "Installing and deploying project via Maven..."
-        curl -v -X POST -u "${{ variables.kieUsername }}:${{ variables.kiePassword }}" \
-          "${{ variables.businessCentralUrl }}/spaces/${{ variables.spaceName }}/projects/${{ variables.projectName }}/maven/compile"
-        curl -v -X POST -u "${{ variables.kieUsername }}:${{ variables.kiePassword }}" \
-          "${{ variables.businessCentralUrl }}/spaces/${{ variables.spaceName }}/projects/${{ variables.projectName }}/maven/install"
-          echo "Installing project via Maven..."
-        installResponse=$(curl -s -X POST -u "${kieUsername}:${kiePassword}" \
-          "${businessCentralUrl}/spaces/${spaceName}/projects/${projectName}/maven/install")
+        compileResponse=$(curl -v -X POST -u "$kieUsername:$kiePassword" \
+          "$businessCentralUrl/spaces/$spaceName/projects/$projectName/maven/compile")
+        echo "Compile Response: $compileResponse"
+        installResponse=$(curl -v -X POST -u "$kieUsername:$kiePassword" \
+          "$businessCentralUrl/spaces/$spaceName/projects/$projectName/maven/install")
         echo "Install Response: $installResponse"
-        curl -v -X POST -u "${{ variables.kieUsername }}:${{ variables.kiePassword }}" \
-          "${{ variables.businessCentralUrl }}/spaces/${{ variables.spaceName }}/projects/${{ variables.projectName }}/maven/deploy"
-        echo "Deploying project via Maven..."
-        deployResponse=$(curl -s -X POST -u "${kieUsername}:${kiePassword}" \
-          "${businessCentralUrl}/spaces/${spaceName}/projects/${projectName}/maven/deploy")
+        deployResponse=$(curl -v -X POST -u "$kieUsername:$kiePassword" \
+          "$businessCentralUrl/spaces/$spaceName/projects/$projectName/maven/deploy")
         echo "Deploy Response: $deployResponse"
       displayName: 'Build and Deploy Project'
+
+    - bash: |
+        echo "Deploying project to KIE Server..."
+        kieDeployResponse=$(curl -X POST -u "$kieUsername:$kiePassword" \
+          "$kieServerUrl/containers/$containerId" -H 'Content-Type: application/json' \
+          -d '{
+            "container-id": "$containerId",
+            "release-id": {
+              "group-id": "org.test",
+              "artifact-id": "kjar",
+              "version": "1.0"
+            },
+            "status": "STARTED"
+          }')
+        echo "KIE Server Deploy Response: $kieDeployResponse"
+      displayName: 'Deploy to KIE Server'
