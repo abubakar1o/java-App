@@ -44,13 +44,19 @@ stages:
 
     - bash: |
         echo "Deploying project to KIE Server..."
-        kieDeployResponse=$(curl -X POST -u "$kieUsername:$kiePassword" \
-          "$kieServerUrl/containers/$containerId" -H 'Content-Type: application/json' \
+        kieServerUrl="$kieServerUrl"
+        containerId="$containerId"
+        kieUsername="$kieUsername"
+        kiePassword="$kiePassword"
+        fullUrl="${kieServerUrl}/containers/${containerId}"
+        echo "URL being used: $fullUrl"  # This will help you verify that the URL is correct.
+        kieDeployResponse=$(curl -X PUT -u "${kieUsername}:${kiePassword}" \
+          "${fullUrl}" -H 'Content-Type: application/json' \
           -d '{
-            "container-id": "$containerId",
+            "container-id": "${containerId}",
             "release-id": {
-              "group-id": "org.test",
-              "artifact-id": "kjar",
+              "group-id": "org.example",
+              "artifact-id": "BPM-Process",
               "version": "1.0"
             },
             "status": "STARTED"
