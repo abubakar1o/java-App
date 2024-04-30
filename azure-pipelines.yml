@@ -50,8 +50,8 @@ stages:
           -d '{
             "container-id": "BPM-Process",
             "release-id": {
-              "group-id": "org.example",
-              "artifact-id": "BPM-Process",
+              "group-id": "org.test",
+              "artifact-id": "kjar",
               "version": "1.0"
             },
             "status": "STARTED"
