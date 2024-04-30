@@ -5,6 +5,7 @@ pool:
   name: 'Default'
 
 variables:
+  kieServerUrl: 'http://40.112.52.80:8180/kie-server/services/rest/server'
   businessCentralUrl: 'http://40.112.52.80:8080/business-central/rest'
   spaceName: 'MySpace'
   projectName: 'BPM-Process'
@@ -35,3 +36,17 @@ stages:
         curl -v -X POST -u "${{ variables.kieUsername }}:${{ variables.kiePassword }}" \
           "${{ variables.businessCentralUrl }}/spaces/${{ variables.spaceName }}/projects/${{ variables.projectName }}/maven/deploy"
       displayName: 'Build and Deploy Project'
+
+    - bash: |
+        echo "Deploying Container in KIE Server..."
+        curl -v -X PUT -u "${{ variables.kieUsername }}:${{ variables.kiePassword }}" \
+          "${{ variables.kieServerUrl }}/containers/${{ variables.kieContainerId }}" -H 'Content-Type: application/json' \
+          -d "{
+            \"container-id\": \"${{ variables.kieContainerId }}\",
+            \"release-id\": {
+              \"group-id\": \"${{ variables.projectName }}\",
+              \"artifact-id\": \"${{ variables.projectName }}\",
+              \"version\": \"1.0\"
+            }
+          }"
+      displayName: 'Deploy Container'
