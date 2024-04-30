@@ -36,17 +36,3 @@ stages:
         curl -v -X POST -u "${{ variables.kieUsername }}:${{ variables.kiePassword }}" \
           "${{ variables.businessCentralUrl }}/spaces/${{ variables.spaceName }}/projects/${{ variables.projectName }}/maven/deploy"
       displayName: 'Build and Deploy Project'
-
-    - bash: |
-        echo "Deploying Container in KIE Server..."
-        curl -v -X post -u "${{ variables.kieUsername }}:${{ variables.kiePassword }}" \
-          "${{ variables.kieServerUrl }}/containers/${{ variables.kieContainerId }}" -H 'Content-Type: application/json' \
-          -d "{
-            \"container-id\": \"${{ variables.kieContainerId }}\",
-            \"release-id\": {
-              \"group-id\": \"${{ variables.projectName }}\",
-              \"artifact-id\": \"${{ variables.projectName }}\",
-              \"version\": \"1.0\"
-            }
-          }"
-      displayName: 'Deploy Container'
