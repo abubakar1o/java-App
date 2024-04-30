@@ -5,7 +5,6 @@ pool:
   name: 'Default'
 
 variables:
-  kieServerUrl: 'http://40.112.52.80:8180/kie-server/services/rest/server'
   businessCentralUrl: 'http://40.112.52.80:8080/business-central/rest'
   spaceName: 'MySpace'
   projectName: 'BPM-Process'
@@ -33,6 +32,14 @@ stages:
           "${{ variables.businessCentralUrl }}/spaces/${{ variables.spaceName }}/projects/${{ variables.projectName }}/maven/compile"
         curl -v -X POST -u "${{ variables.kieUsername }}:${{ variables.kiePassword }}" \
           "${{ variables.businessCentralUrl }}/spaces/${{ variables.spaceName }}/projects/${{ variables.projectName }}/maven/install"
+          echo "Installing project via Maven..."
+        installResponse=$(curl -s -X POST -u "${kieUsername}:${kiePassword}" \
+          "${businessCentralUrl}/spaces/${spaceName}/projects/${projectName}/maven/install")
+        echo "Install Response: $installResponse"
         curl -v -X POST -u "${{ variables.kieUsername }}:${{ variables.kiePassword }}" \
           "${{ variables.businessCentralUrl }}/spaces/${{ variables.spaceName }}/projects/${{ variables.projectName }}/maven/deploy"
+        echo "Deploying project via Maven..."
+        deployResponse=$(curl -s -X POST -u "${kieUsername}:${kiePassword}" \
+          "${businessCentralUrl}/spaces/${spaceName}/projects/${projectName}/maven/deploy")
+        echo "Deploy Response: $deployResponse"
       displayName: 'Build and Deploy Project'
