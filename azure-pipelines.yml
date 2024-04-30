@@ -39,7 +39,7 @@ stages:
 
     - bash: |
         echo "Deploying Container in KIE Server..."
-        curl -v -X PUT -u "${{ variables.kieUsername }}:${{ variables.kiePassword }}" \
+        curl -v -X post -u "${{ variables.kieUsername }}:${{ variables.kiePassword }}" \
           "${{ variables.kieServerUrl }}/containers/${{ variables.kieContainerId }}" -H 'Content-Type: application/json' \
           -d "{
             \"container-id\": \"${{ variables.kieContainerId }}\",
